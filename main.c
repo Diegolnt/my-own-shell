@@ -1,5 +1,8 @@
 #include <stdio.h>
-#include <unistd.h>
+#include <unistd.h> # UNIX libraries
+#include <sys/wait.h> # Wait forks use this
+#include <sys/types.h> # Types of data
+#include <stdlib.h> # Memory Management
 
 int main(){
 	
