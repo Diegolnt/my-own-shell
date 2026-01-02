@@ -1,59 +1,74 @@
+/*
+A simple Unix Shell
+Author: Diego Echverría
+Date: January 2026
+*/
+
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h> // Needed for strlen
+#include <sys/types.h>
 #include <sys/wait.h> // For wait()
 
+#define BUFFER_SIZE 1024
+#define MAX_ARGS 32
+#define DELIMETERS " \t\n"
+
+char *read_line(void);
+char **parse_line(char *args);
+
 int main(){
-    
-    int fd[2]; 
-    // 1. IMPORTANT: Create the pipe BEFORE the fork so File Descriptors are inherited.
-    if (pipe(fd) == -1) {
-        perror("Pipe failed");
-        return 1;
-    }
+	// Buffer
+	char buffer[1024];
 
-    // 2. Now we fork. The Child inherits fd[0] and fd[1].
-    int pid = fork();
+	printf("Begin Initialization [+]\n");
+	while (1){
+		printf("<>:"); // Receive input
+		char *result = read_line();
+		printf("Result: %s \n",result);
+		char **results = parse_line(result);
+		int i = 0;
+		while (results[i]!=NULL){
+			printf("Resultado 2: %s \n",results[i]);
+			i++;
+		}
+	}
+	return 0; // just for standard practice
+   }
 
-    if (pid < 0) {
-        perror("Fork failed");
-        return 1;
-    }
 
-    // --- CHILD PROCESS ---
-    if (pid == 0){
-        // Child writes, so we close the Read End.
-        close(fd[0]); 
-        
-        char *message = "Child Write Test";
-        
-        printf("Child (PID: %d): Writing to pipe...\n", getpid());
-        
-        // 3. Pass the 'message' pointer and its actual length.
-        // We add +1 to strlen to include the 'null terminator' (\0), 
-        // ensuring the reader gets a valid C-string.
-        write(fd[1], message, strlen(message) + 1);
-        
-        close(fd[1]); // Close Write End to send EOF to the reader.
-    }
-    
-    // --- PARENT PROCESS ---
-    else {
-        // Parent reads, so we close the Write End.
-        close(fd[1]);
-        
-        char output[100];
-        
-        // Clear the buffer for safety
-        memset(output, 0, sizeof(output));
 
-        // read() blocks execution until data is available or the pipe is closed (EOF).
-        read(fd[0], output, sizeof(output));
-        
-        printf("Parent (PID: %d): Received from child -> '%s'\n", getpid(), output);
-        
-        close(fd[0]);
-        wait(NULL); // Best practice: wait for child to terminate to avoid a Zombie Process.
-    }
-    return 0;
+char *read_line(void){
+	char *line = NULL;
+	size_t buffsize = 1024; // Trying fgets replacement
+
+	if (getline(&line,&buffsize,stdin)==-1){
+		perror("read_line getline error");
+	}
+ 
+	return line;
 }
+
+char **parse_line(char *line){
+	int position = 0;	
+	char **tokens = malloc(MAX_ARGS * sizeof(char*));
+	char *token;
+
+	if (!tokens){
+		fprintf(stderr, "Allocation error \n");
+		exit(1);
+	}
+	token = strtok(line, DELIMETERS);
+	while (token != NULL){
+		tokens[position] = token;
+		position++;
+
+		token = strtok(NULL, DELIMETERS);
+	}
+
+	return tokens;
+}
+
+
