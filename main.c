@@ -16,8 +16,20 @@ Date: January 2026
 #define MAX_ARGS 32
 #define DELIMETERS " \t\n"
 
-char *read_line(void);
-char **parse_line(char *args);
+char *read_line(void); // Receive line
+char **parse_line(char *args); // Split instructions into array
+int is_builtin(char *cmd); // Receive instruction  and decide
+int num_builtins(){
+	return sizeof(builtinstr)/sizeof(char *); // Dynamic calculaition of num of builtins (not necesary but good practice)
+			   
+const char *bultinstr[] ={
+	"ls",
+	"pwd",
+	"cat,
+	"echo",
+	"mkdir", "rm", "cp", "mv",
+	"grep", "find", "wc"
+};
 
 int main(){
 	// Buffer
@@ -33,6 +45,7 @@ int main(){
 		while (results[i]!=NULL){
 			printf("Resultado 2: %s \n",results[i]);
 			i++;
+			printf("Resultado 3 (isbuiltin): %s \n", is_builtin(results[i]));
 		}
 	}
 	return 0; // just for standard practice
@@ -71,4 +84,11 @@ char **parse_line(char *line){
 	return tokens;
 }
 
-
+int is_builtin(char *instruction){
+	if (instruction == NULL) return 0;
+	for (int i =0;i<num_builtins();i++){
+		if (strcmp(instruction, builtin_str[i]) == 0){
+			return 1; // Is a built in
+		}
+	}
+	return 0; // not found in builtin array
